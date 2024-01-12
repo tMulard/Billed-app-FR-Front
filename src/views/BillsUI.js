@@ -22,7 +22,7 @@ const row = (bill) => {
 const rows = (data) => {
   const antiChrono = (a, b) => ((new Date(a.date) < new Date(b.date)) ? 1 : -1)
 
-  const dataSorted = [...data].sort(antiChrono)
+  const dataSorted = (data && data.length) ? [...data].sort(antiChrono) : []
 
   return (dataSorted && dataSorted.length) ? dataSorted.map(bill => row(bill)).join("") : ""
 }
