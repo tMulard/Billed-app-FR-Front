@@ -1,6 +1,5 @@
 import { ROUTES_PATH } from '../constants/routes.js'
 import Logout from "./Logout.js"
-
 export default class NewBill {
   constructor({ document, onNavigate, store, localStorage }) {
     this.document = document
@@ -15,6 +14,10 @@ export default class NewBill {
     this.billId = null
     new Logout({ document, localStorage, onNavigate })
   }
+  _isPicture = (fileType) => {
+    const fileExt = ["image/jpg", "image/png"]
+    return fileExt.includes(fileType)
+  }
   handleChangeFile = e => {
     e.preventDefault()
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
@@ -24,7 +27,11 @@ export default class NewBill {
     const email = JSON.parse(localStorage.getItem("user")).email
     formData.append('file', file)
     formData.append('email', email)
-
+    if(!this._isPicture(file.type)) {
+      console.log("Early return")
+      
+      return
+    }
     this.store
       .bills()
       .create({
@@ -39,6 +46,8 @@ export default class NewBill {
         this.fileUrl = fileUrl
         this.fileName = fileName
       }).catch(error => console.error(error))
+      console.log(file)
+      
   }
   handleSubmit = e => {
     e.preventDefault()
