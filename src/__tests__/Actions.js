@@ -9,9 +9,10 @@ import '@testing-library/jest-dom/extend-expect'
 
 describe('Given I am connected as an Employee', () => {
   describe('When I am on Bills page and there are bills', () => {
-    test(('Then, it should render icon eye'), () => {
+    test(('Then, it should render icon eye'), async () => {
       const html = Actions()
       document.body.innerHTML = html
+      await waitFor(() => screen.getByTestId('icon-eye'))
       expect(screen.getByTestId('icon-eye')).toBeTruthy()
     })
   })
