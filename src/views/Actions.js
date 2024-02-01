@@ -2,7 +2,7 @@ import eyeBlueIcon from "../assets/svg/eye_blue.js"
 import downloadBlueIcon from "../assets/svg/download_blue.js"
 
 export default (billUrl) => {
-  if (billUrl.search("/null") >= 0 ) return ""
+  if (billUrl === null ) return 
   return (
     `<div class="icon-actions">
       <div id="eye" data-testid="icon-eye" data-bill-url=${billUrl}>

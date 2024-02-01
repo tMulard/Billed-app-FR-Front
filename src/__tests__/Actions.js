@@ -9,11 +9,11 @@ import '@testing-library/jest-dom/extend-expect'
 
 describe('Given I am connected as an Employee', () => {
   describe('When I am on Bills page and there are bills', () => {
-    test(('Then, it should render icon eye'), async () => {
+    test(('Then, it should render icon eye'), () => {
       const html = Actions()
       document.body.innerHTML = html
-      await waitFor(() => screen.getByTestId('icon-eye'))
-      expect(screen.getByTestId('icon-eye')).toBeTruthy()
+      const iconRender = screen.getByTestId('icon-eye')
+      expect(iconRender).toHaveAttribute('data-bill-url', "undefined")
     })
   })
   describe('When I am on Bills page and there are bills with url for file', () => {
