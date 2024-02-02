@@ -108,10 +108,20 @@ describe('Given I am connected as an Admin', () => {
       })
       document.body.innerHTML = DashboardUI({ data: { bills } })
       const handleShowTickets1 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 1))
+      const handleShowTickets2 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 2))
+      const handleShowTickets3 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 3))
       const icon1 = screen.getByTestId('arrow-icon1')
+      const icon2 = screen.getByTestId('arrow-icon2')
+      const icon3 = screen.getByTestId('arrow-icon3')
       icon1.addEventListener('click', handleShowTickets1)
+      icon2.addEventListener('click', handleShowTickets2)
+      icon3.addEventListener('click', handleShowTickets3)
       userEvent.click(icon1)
       expect(handleShowTickets1).toHaveBeenCalled()
+      userEvent.click(icon2)
+      expect(handleShowTickets2).toHaveBeenCalled()
+      userEvent.click(icon3)
+      expect(handleShowTickets3).toHaveBeenCalled()
       expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy()
       const iconEdit = screen.getByTestId('open-bill47qAXb6fIm2zOKkLzMro')
       userEvent.click(iconEdit)
@@ -122,29 +132,40 @@ describe('Given I am connected as an Admin', () => {
   describe('When I am on Dashboard page and I click 2 times on edit icon of a card', () => {
     test('Then, big bill Icon should Appear',  () => {
 
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname })
-      }
+      const onNavigate = (pathname) => {document.body.innerHTML = ROUTES({ pathname })}
 
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Admin'
-      }))
+      window.localStorage.setItem('user', JSON.stringify({ type: 'Admin' }))
 
-      const dashboard = new Dashboard({
-        document, onNavigate, store: null, bills:bills, localStorage: window.localStorage
-      })
+      const dashboard = new Dashboard({ document, onNavigate, store: null, bills:bills, localStorage: window.localStorage })
       document.body.innerHTML = DashboardUI({ data: { bills } })
 
       const handleShowTickets1 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 1))
+      const handleShowTickets2 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 2))
+      const handleShowTickets3 = jest.fn((e) => dashboard.handleShowTickets(e, bills, 3))
+      const handleHideTickets1 = jest.fn((e) => dashboard.handleHideTickets(e, bills, 1))
+      const handleHideTickets2 = jest.fn((e) => dashboard.handleHideTickets(e, bills, 2))
+      const handleHideTickets3 = jest.fn((e) => dashboard.handleHideTickets(e, bills, 3))
       const icon1 = screen.getByTestId('arrow-icon1')
+      const icon2 = screen.getByTestId('arrow-icon2')
+      const icon3 = screen.getByTestId('arrow-icon3')
       icon1.addEventListener('click', handleShowTickets1)
+      icon2.addEventListener('click', handleShowTickets2)
+      icon3.addEventListener('click', handleShowTickets3)
       userEvent.click(icon1)
       expect(handleShowTickets1).toHaveBeenCalled()
-      expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy()
+      userEvent.click(icon2)
+      expect(handleShowTickets2).toHaveBeenCalled()
+      userEvent.click(icon3)
+      expect(handleShowTickets3).toHaveBeenCalled()
       const iconEdit = screen.getByTestId('open-bill47qAXb6fIm2zOKkLzMro')
-      userEvent.click(iconEdit)
-      userEvent.click(iconEdit)
+      expect(iconEdit).toBeTruthy()
+      userEvent.click(iconEdit, {'clickCount' : 2})
+      // userEvent.click(iconEdit)
+      icon1.addEventListener('click', handleHideTickets1)
+      icon2.addEventListener('click', handleHideTickets2)
+      icon3.addEventListener('click', handleHideTickets3)
+      
       const bigBilledIcon = screen.queryByTestId("big-billed-icon")
       expect(bigBilledIcon).toBeTruthy()
     })
