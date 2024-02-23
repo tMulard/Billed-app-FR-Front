@@ -2,233 +2,232 @@
  * @jest-environment jsdom
  */
 
-import {screen, waitFor, fireEvent} from "@testing-library/dom"
-import BillsUI from "../views/BillsUI.js"
-import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH, ROUTES} from "../constants/routes.js";
-import {localStorageMock} from "../__mocks__/localStorage.js";
-
+import { screen, waitFor, fireEvent } from "@testing-library/dom";
+import BillsUI from "../views/BillsUI.js";
+import { bills } from "../fixtures/bills.js";
+import { ROUTES_PATH, ROUTES } from "../constants/routes.js";
+import { localStorageMock } from "../__mocks__/localStorage.js";
+import Bills from "../containers/Bills.js";
+import mockStore from "../__mocks__/store"
 import router from "../app/Router.js";
-import userEvent from "@testing-library/user-event";
-import Bills from '../containers/Bills.js'
+
+jest.mock("../app/store", () => mockStore)
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on Bills Page", () => {
     test("Then bill icon in vertical layout should be highlighted", async () => {
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+        })
+      );
+      const root = document.createElement("div");
+      root.setAttribute("id", "root");
+      document.body.append(root);
+      router();
+      window.onNavigate(ROUTES_PATH.Bills);
+      await waitFor(() => screen.getByTestId("icon-window"));
+      const windowIcon = screen.getByTestId("icon-window");
 
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.append(root)
-      router()
-      window.onNavigate(ROUTES_PATH.Bills)
-      await waitFor(() => screen.getByTestId('icon-window'))
-      const windowIcon = screen.getByTestId('icon-window')
-      //to-do write expect expression
-      expect(windowIcon).toBeTruthy()
-    })
+      
+      // vérifie si l'élément windowIcon a la classe "active-icon"
+      expect(Array.from(windowIcon.classList).includes('active-icon')).toBe(true)
+    });
+
     test("Then bills should be ordered from earliest to latest", () => {
-      // créer la page
-      document.body.innerHTML = BillsUI({ data: bills })
-      
-      // récupérer les dates qui sont affichées sur la page
-      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
+      // Fonction de tri par ordre chronologique
+      const chrono = (a, b) => new Date(a) - new Date(b);
 
-      // crééer une fonction ==> SUR ET CERTAIN QU'ELLE FONCTIONNE
-      const antiChrono = (a, b) => ((a < b) ? 1 : -1)
+      // Création de la page (headlessDOM)
+      document.body.innerHTML = BillsUI({ data: bills }); // Des dates potentiellement non triées
 
-      // trier les dates récupéré dans la page avec la fonction qui trie bien
-      const datesSorted = [...dates].sort(antiChrono)
+      // Récupération des dates affichées sur la page
+      const dates = screen
+        .getAllByText(
+          /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i
+        )
+        .map((a) => a.innerHTML);
 
-      // on regarde si y'a une différence entre les dates de la pages ET les dates triées
-      expect(dates).toEqual(datesSorted)
-    })
-  })
+      // Tri des dates dans l'ordre chronologique
+      const datesSorted = [...dates].sort(chrono);
 
-  describe("When I click on New Bill button", () => {
-    test("Then the new bill creation function should be called", async () => {
+      // Vérification que les dates affichées sont triées de la plus ancienne à la plus récente
+      expect(dates).toEqual(datesSorted.reverse());
+    });
 
-      ////////////////////////////////////////////////////////////////////
-      // création de la page (headless dom)
-      document.body.innerHTML = BillsUI({ data: bills })
+    describe("handleClickNewBill", () => {
+      test("should navigate to NewBill page", () => {
+        // Création de la page (headlessDOM)
+        document.body.innerHTML = BillsUI({ data: bills }); 
 
-      // simulation de données dans le localStorage
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      // simule un employé connecté
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
 
-      // création de la fonction onNavigate
-      const onNavigate = (path) => {
-        document.body.innerHTML = ROUTES({path})
-      }
+        // simule des donneés dans le localStorage
+        Object.defineProperty(window, localStorage, {
+          value: localStorageMock,
+        });
+        // simule un employé connecté
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        );
 
-      // mock store
-      const store = jest.fn();
+        // we have to mock navigation to test it
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
 
-      // création de la classe qui gère la page
-      const billsContainer = new Bills({
-        document,
-        onNavigate,
-        store,
-        localStorage: localStorageMock
-      })
-      ////////////////////////////////////////////////////////////////////
-      
-      //récupérer le bouton
-      const buttonNewBill = screen.getByTestId('btn-new-bill')
-      
-      // mock une fonction qui va être appelé quand on click sur le bouton
-      const handleClickNewBill = jest.fn(() => {
+        // mock le store
+        const store = jest.fn();
+
+        // création de ma class qui gère la page
+        const billsContainer = new Bills({
+          document,
+          onNavigate,
+          store,
+          localStorage: localStorageMock,
+        });
+
+        // récupère le button new BIll
+        const buttonNewBill = screen.getByTestId("btn-new-bill");
+
+
+        // mock la fonction handleClickIconEy
+        const handleClickNewBill = jest.fn(() =>
         billsContainer.handleClickNewBill()
-      })
+        );
 
-      // on ajoute le listener de la fonction
-      buttonNewBill.addEventListener('click', handleClickNewBill)
+        // ajout un eventlistener au click sur l'icon
+        buttonNewBill.addEventListener("click", handleClickNewBill());
 
-      // on click sur le bouton
-      fireEvent.click(buttonNewBill)
+        // simulation un clic sur le bouton Newbill
+        fireEvent.click(buttonNewBill)
 
-      // tadaaaaa 🎉
-      expect(handleClickNewBill).toHaveBeenCalled()
-    })
-  })
-
-  describe("When I click on the eye icon", () => {
-    test("Then the bill modal should open", async () => {
+        expect(handleClickNewBill).toHaveBeenCalled();
       
-      ////////////////////////////////////////////////////////////////////
-      // création de la page (headless dom)
-      document.body.innerHTML = BillsUI({ data: bills })
+      });
+    });
 
-      // mock store
-      const store = jest.fn();
+    describe("handleClickIconEye", () => {
+      test("should update modal content and show the modal", () => {
+        // Création de la page (headlessDOM)
+        document.body.innerHTML = BillsUI({ data: bills }); 
 
-      // création de la classe qui gère la page
-      const billsContainer = new Bills({
-        document,
-        onNavigate,
-        store,
-        localStorage: localStorageMock
-      })
-      ////////////////////////////////////////////////////////////////////
+        // simule des donneés dans le localStorage
+        Object.defineProperty(window, localStorage, {
+          value: localStorageMock,
+        });
+        // simule un employé connecté
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        );
 
-      const iconEye=document.querySelectorAll('#icon-eye')
-      iconEye.forEach((icon) => {
-        const handleClickIconEye = jest.fn((e)=>billsContainer.handleClickIconEye(icon))
-        userEvent.click(icon)
-        expect(handleClickIconEye).toHaveBeenCalled()
-      })
-    })
-  })
-})
+        // we have to mock navigation to test it
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
 
+        // mock le store
+        const store = jest.fn();
 
-// test d'intégration GET
-describe("Given I am a user connected as an employee", () => {
-  describe("When I navigate to Bills page", () => {
-    test("fetches bills from mock API GET", async () => {
-      ////////////////////////////////////////////////////////////////////
-      // création de la page (headless dom)
-      document.body.innerHTML = BillsUI({ data: bills })
+        // création de ma class qui gère la page
+        const billsContainer = new Bills({
+          document,
+          onNavigate,
+          store,
+          localStorage: localStorageMock,
+        });
 
-      // simulation de données dans le localStorage
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      // simule un employé connecté
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
+        $.fn.modal = jest.fn()
 
-      // création de la fonction onNavigate
-      const onNavigate = (path) => {
-        document.body.innerHTML = ROUTES({path})
-      }
+        // ============================================
 
-      // mock store
-      const store = jest.fn();
+        // récupère l'icon
+        const icon = screen.getAllByTestId("icon-eye")[0];
 
-      // création de la classe qui gère la page
-      const billsContainer = new Bills({
-        document,
-        onNavigate,
-        store,
-        localStorage: localStorageMock
-      })
-      ////////////////////////////////////////////////////////////////////
-      
-     const contentTable  = await waitFor(() => screen.getByTestId("tbody"))
-     expect(contentTable).toBeTruthy()
+        // mock la fonction handleClickIconEy
+        const handleClickIconEye = jest.fn(() =>
+          billsContainer.handleClickIconEye(icon)
+        );
+        // ajout un eventlistener au click sur l'icon
+        icon.addEventListener("click", handleClickIconEye(icon));
 
-     const billType = await screen.queryByText('Transports')
-     expect(billType).toBeTruthy()
+        // on click sur l'icon
+        fireEvent.click(icon);
 
-    })
+        // on veut que la fonction soit appelé
+        expect(handleClickIconEye).toHaveBeenCalled();
+        expect($.fn.modal).toHaveBeenCalled()
+      });
+    });
+  });
+});
 
+// Test d'intégration : GET
 
+describe("When I navigate to Bills Page", () => {
 
+  test("I get bills from the API GET method", async () => {
+    // Espionnage de la méthode bills() du mockStore
+    const getSpy = jest.spyOn(mockStore, "bills");
+    
+    // Appel de la méthode list() pour récupérer les factures
+    const userBills = await mockStore.bills().list();
 
+    // Vérification que la méthode bills() a été appelée une fois
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
+    // Vérification de la longueur des factures récupérées
+    expect(userBills.length).toBe(4);
+  });
 
+  test("API fetch fails with 404 error", async () => {
+    // Simulation d'une erreur 404 avec la méthode mockImplementationOnce()
+    mockStore.bills.mockImplementationOnce(() => {
+      return {
+        list: () => {
+          return Promise.reject(new Error("Erreur 404"));
+        }
+      };
+    });
 
+    // Mise en place de l'interface utilisateur avec le message d'erreur
+    const html = BillsUI({ error: "Erreur 404" });
+    document.body.innerHTML = html;
 
+    // Récupération du message d'erreur affiché à l'écran
+    const message = await screen.getByText(/Erreur 404/);
 
+    // Vérification que le message d'erreur est présent
+    expect(message).toBeTruthy();
+  });
+  
+  test("API fetch fails with 500 error", async () => {
+    // Simulation d'une erreur 500 avec la méthode mockImplementationOnce()
+    mockStore.bills.mockImplementationOnce(() => {
+      return {
+        list: () => {
+          return Promise.reject(new Error("Erreur 500"));
+        }
+      };
+    });
 
+    // Mise en place de l'interface utilisateur avec le message d'erreur
+    const html = BillsUI({ error: "Erreur 500" });
+    document.body.innerHTML = html;
 
+    // Récupération du message d'erreur affiché à l'écran
+    const message = await screen.getByText(/Erreur 500/);
 
-
-
-
-
-
-  describe("When an error occurs on API", () => {
-    beforeEach(() => {
-      jest.spyOn(localStorageMock, "bills")
-      Object.defineProperty(
-          window,
-          'localStorage',
-          { value: localStorageMock }
-      )
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
-
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.appendChild(root)
-      router()
-    })
-    test("fetches bills from an API and fails with 404 message error", async () => {
-
-      localStorageMock.bills.mockImplementationOnce(() => {
-        return {
-          list : () =>  {
-            return Promise.reject(new Error("Erreur 404"))
-          }
-        }})
-      window.onNavigate(ROUTES_PATH.Bills)
-      await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 404/)
-      expect(message).toBeTruthy()
-    })
-
-    test("fetches messages from an API and fails with 500 message error", async () => {
-
-      localStorageMock.bills.mockImplementationOnce(() => {
-        return {
-          list : () =>  {
-            return Promise.reject(new Error("Erreur 500"))
-          }
-        }})
-
-      window.onNavigate(ROUTES_PATH.Bills)
-      await new Promise(process.nextTick);
-      const message = await screen.getByText(/Erreur 500/)
-      expect(message).toBeTruthy()
-    })
-  })
-  })
-})
+    // Vérification que le message d'erreur est présent
+    expect(message).toBeTruthy();
+  });
+});
