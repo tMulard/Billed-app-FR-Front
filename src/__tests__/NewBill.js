@@ -58,7 +58,7 @@ describe("Given I am connected as an employee", () => {
   })
 
   describe("When I do fill fields in correct format and I click on submit button", () => {
-    test.only("Then it should create a new bill", async () => {
+    test("Then it should create a new bill", async () => {
     
       const html = NewBillUI()
       document.body.innerHTML = html
@@ -134,6 +134,14 @@ describe("Given I am connected as an employee", () => {
       expect(handleChangeFile).toHaveBeenCalled()
 
       const submit = screen.getByTestId("btn-send-bill")
+      const handleSubmit = jest.fn(() =>
+        billsContainer.handleSubmit()
+        );
+
+      submit.addEventListener('click', handleSubmit)
+      fireEvent.click(submit)
+
+      expect(handleSubmit).toHaveBeenCalled()
     })
   })
 })
