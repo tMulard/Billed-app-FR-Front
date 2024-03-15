@@ -81,8 +81,6 @@ describe("Given I am connected as an employee", () => {
         document.body.innerHTML = ROUTES({ pathname });
       };
 
-      // mock le store
-
       // création de ma class qui gère la page
       const billsContainer = new NewBill({
         document,
@@ -126,6 +124,7 @@ describe("Given I am connected as an employee", () => {
         value: [file]
       })
 
+      /////////changement de fichier dans la partie "justificatif"
       const handleChangeFile = jest.fn(billsContainer.handleChangeFile)
 
       expenseFile.addEventListener('change', handleChangeFile)
@@ -133,6 +132,7 @@ describe("Given I am connected as an employee", () => {
 
       expect(handleChangeFile).toHaveBeenCalled()
 
+      /////////lancement de la fonction handleSubmit
       const submit = screen.getByTestId("btn-send-bill")
       const handleSubmit = jest.fn(() =>
         billsContainer.handleSubmit()
@@ -142,6 +142,13 @@ describe("Given I am connected as an employee", () => {
       fireEvent.click(submit)
 
       expect(handleSubmit).toHaveBeenCalled()
+
+      /////////nouvelle note de frais présente dans la liste
+      billsContainer.onNavigate(ROUTES_PATH['Bills'])
+      await waitFor(() => screen.queryByText('toto'))
+      const newTestBill = screen.queryByText('toto')
+      
+      expect(newTestBill).toBeTruthy()
     })
   })
 })
