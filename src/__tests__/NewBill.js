@@ -133,20 +133,18 @@ describe("Given I am connected as an employee", () => {
       expect(handleChangeFile).toHaveBeenCalled()
 
       /////////lancement de la fonction handleSubmit
-      const submit = screen.getByTestId("btn-send-bill")
-      const handleSubmit = jest.fn(() =>
-        billsContainer.handleSubmit()
-        );
+      const newBillForm = screen.getByTestId("form-new-bill");
+      const handleSubmit = jest.fn(billsContainer.handleSubmit);
 
-      submit.addEventListener('click', handleSubmit)
-      fireEvent.click(submit)
+      newBillForm.addEventListener('submit', handleSubmit)
+      fireEvent.submit(newBillForm)
 
       expect(handleSubmit).toHaveBeenCalled()
 
       /////////nouvelle note de frais présente dans la liste
       billsContainer.onNavigate(ROUTES_PATH['Bills'])
-      await waitFor(() => screen.queryByText('toto'))
-      const newTestBill = screen.queryByText('toto')
+      await waitFor(() => screen.queryByText('Mes notes de frais'))
+      const newTestBill = screen.queryByText('Mes notes de frais')
       
       expect(newTestBill).toBeTruthy()
     })
