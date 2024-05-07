@@ -99,7 +99,9 @@ export default class {
       $('.dashboard-right-container div').html(DashboardFormUI(bill))
       $('.vertical-navbar').css({ height: '150vh' })
       this.counter ++
-    } else if (this.counter % 2 === 1) {
+    } 
+    /////partie de code ajoutée pour la fluidité de la fonction
+    else if (this.counter % 2 === 1) {
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' })
       $('.dashboard-right-container div').html(`<div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>`)
       $('.vertical-navbar').css({ height: '150vh' })
@@ -139,7 +141,9 @@ export default class {
       $(`#status-bills-container${this.index}`)
         .html(cards(filteredBills(bills, getStatus(this.index))))
       this.counter ++
-    } else if (this.counter % 2 === 1) {
+    } 
+    /////partie de code ajoutée pour la fluidité de la fonction
+    else if (this.counter % 2 === 1) {
       $(`#arrow-icon${this.index}`).css({ transform: 'rotate(0deg)'})
       $(`#status-bills-container${this.index}`)
         .html(cards(filteredBills(bills, getStatus(this.index))))
@@ -151,6 +155,9 @@ export default class {
     }
 
     bills.forEach(bill => {
+      //Flush des clicks sur les autres bills ouvertes sur le dashboard
+      $(`#open-bill${bill.id}`).off().click()
+      
       $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
     })
 

@@ -28,8 +28,6 @@ export default class NewBill {
     formData.append('file', file)
     formData.append('email', email)
     if(!this._isPicture(file.type)) {
-      console.log("Early return")
-      
       return
     }
     this.store

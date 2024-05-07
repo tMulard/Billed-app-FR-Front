@@ -92,7 +92,7 @@ describe('Given I am connected as an Admin', () => {
   })
 
   describe('When I am on Dashboard page and I click on edit icon of a card', () => {
-    test('Then, right form should be filled',  () => {
+    test('Then, right form should be filled', () => {
 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
@@ -126,6 +126,11 @@ describe('Given I am connected as an Admin', () => {
       const iconEdit = screen.getByTestId('open-bill47qAXb6fIm2zOKkLzMro')
       userEvent.click(iconEdit)
       expect(screen.getByTestId(`dashboard-form`)).toBeTruthy()
+      //Test pour deux catégories ouvertes et passage d'une bill de l'une à une bill de l'autre, ici "En attente" et "Validées"
+      expect(screen.getByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`)).toBeTruthy()
+      const iconEdit2 = screen.getByTestId('open-billBeKy5Mo4jkmdfPGYpTxZ')
+      userEvent.click(iconEdit2)
+      expect(iconEdit.click()).toBeFalsy()
     })
   })
 
